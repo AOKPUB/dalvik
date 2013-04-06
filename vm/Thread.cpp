@@ -1301,8 +1301,8 @@ bool dvmCreateInterpThread(Object* threadObj, int reqStackSize)
 
     ThreadStatus oldStatus = dvmChangeStatus(self, THREAD_VMWAIT);
     pthread_t threadHandle;
-    int cc = pthread_create(&threadHandle, &threadAttr, interpThreadStart,
-                            newThread);
+    int cc = pthread_create(&threadHandle, &threadAttr, interpThreadStart,new Thread);
+    pthread_attr_destroy(&threadAttr);
     dvmChangeStatus(self, oldStatus);
 
     if (cc != 0) {
@@ -1636,7 +1636,6 @@ bool dvmCreateInternalThread(pthread_t* pHandle, const char* name,
 {
     InternalStartArgs* pArgs;
     Object* systemGroup;
-    pthread_attr_t threadAttr;
     volatile Thread* newThread = NULL;
     volatile int createStatus = 0;
 
@@ -1652,13 +1651,13 @@ bool dvmCreateInternalThread(pthread_t* pHandle, const char* name,
     pArgs->isDaemon = true;
     pArgs->pThread = &newThread;
     pArgs->pCreateStatus = &createStatus;
-
+    
+    pthread_attr_t threadAttr;
     pthread_attr_init(&threadAttr);
     //pthread_attr_setdetachstate(&threadAttr, PTHREAD_CREATE_DETACHED);
-
-    if (pthread_create(pHandle, &threadAttr, internalThreadStart,
-            pArgs) != 0)
-    {
+    init cc=pthread_create(pHandle, &threadAttr, internalThreadStart, pArgs);
+    pthread_attr_destroy(&threadAttr);
+    if (cc !=0) {
         ALOGE("internal thread creation failed");
         free(pArgs->name);
         free(pArgs);
